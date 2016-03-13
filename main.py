@@ -116,6 +116,16 @@ def winner(state, last_move, player):
     return 0
 
 
+def next_move(node):
+    chosen_move = None
+    max_heuristic = -float('inf')
+    for key, child in node.children.iteritems():
+        if child.value > max_heuristic:
+            max_heuristic = child.value
+            chosen_move = key
+    return chosen_move
+
+
 # min-max
 class Node(object):
     def __init__(self, value, state, player, last_move):
@@ -146,7 +156,7 @@ def heuristic(node):
     return random.random()
 
 
-def min_max(node, depth, maximizing_player):
+def minimax(node, depth, maximizing_player):
     if depth == 0 or node.is_leaf():
         node.value = heuristic(node)
         return node.value
@@ -156,17 +166,39 @@ def min_max(node, depth, maximizing_player):
     if maximizing_player:
         best_value = -float('inf')
         for child in node.children.values():
-            v = min_max(child, depth - 1, False)
-            best_value = max([best_value, v])
-        node.value = best_value
-        return node.value
+            best_value = max([best_value, minimax(child, depth - 1, False)])
     else:
         best_value = float('inf')
         for child in node.children.values():
-            v = min_max(child, depth - 1, True)
-            best_value = min([best_value, v])
-        node.value = best_value
+            best_value = min([best_value, minimax(child, depth - 1, True)])
+
+    node.value = best_value
+    return node.value
+
+
+def alphabeta(node, depth, alpha, beta, maximizing_player):
+    if depth == 0 or node.is_leaf():
+        node.value = heuristic(node)
         return node.value
+
+    node.populate_children()
+
+    if maximizing_player:
+        v = -float('inf')
+        for child in node.children.values():
+            v = max([v, alphabeta(child, depth - 1, alpha, beta, False)])
+            alpha = max([alpha, v])
+            if beta <= alpha:
+                break
+    else:
+        v = float('inf')
+        for child in node.children.values():
+            v = min([v, alphabeta(child, depth - 1, alpha, beta, True)])
+            beta = min([beta, v])
+            if beta <= alpha:
+                break
+    node.value = v
+    return node.value
 
 
 # # reading input
@@ -182,14 +214,9 @@ player = int(raw_input())
 
 root = Node(None, state, player, None)
 
-min_max(root, 5, True)
+# minimax(root, 2, True)
+alphabeta(root, 2, -float('inf'), float('inf'), True)
 
-chosen_move = None
-max_heuristic = -float('inf')
-for key, child in root.children.iteritems():
-    if child.value > max_heuristic:
-        max_heuristic = child.value
-        chosen_move = key
+print next_move(root)
 
-print chosen_move
 # print [round(child.value, 2) for child in root.children.values()]
