@@ -152,11 +152,7 @@ class Node(object):
         return self.player % 2 + 1
 
 
-def heuristic(node):
-    return random.random()
-
-
-def minimax(node, depth, maximizing_player):
+def minimax(node, depth, maximizing_player, heuristic):
     if depth == 0 or node.is_leaf():
         node.value = heuristic(node)
         return node.value
@@ -176,7 +172,7 @@ def minimax(node, depth, maximizing_player):
     return node.value
 
 
-def alphabeta(node, depth, alpha, beta, maximizing_player):
+def alphabeta(node, depth, alpha, beta, maximizing_player, heuristic):
     if depth == 0 or node.is_leaf():
         node.value = heuristic(node)
         return node.value
@@ -186,14 +182,14 @@ def alphabeta(node, depth, alpha, beta, maximizing_player):
     if maximizing_player:
         v = -float('inf')
         for child in node.children.values():
-            v = max([v, alphabeta(child, depth - 1, alpha, beta, False)])
+            v = max([v, alphabeta(child, depth - 1, alpha, beta, False, heuristic)])
             alpha = max([alpha, v])
             if beta <= alpha:
                 break
     else:
         v = float('inf')
         for child in node.children.values():
-            v = min([v, alphabeta(child, depth - 1, alpha, beta, True)])
+            v = min([v, alphabeta(child, depth - 1, alpha, beta, True, heuristic)])
             beta = min([beta, v])
             if beta <= alpha:
                 break
@@ -201,21 +197,28 @@ def alphabeta(node, depth, alpha, beta, maximizing_player):
     return node.value
 
 
-# # reading input
-state = []
+def heuristic_random(node):
+    return random.random()
 
-for i in xrange(0, HEIGHT):
-    line = raw_input()
-    state.append([int(i) for i in line.split(' ')])
 
-player = int(raw_input())
+def read_input():
+    state = []
+    for i in xrange(0, HEIGHT):
+        line = raw_input()
+        state.append([int(i) for i in line.split(' ')])
+    player = int(raw_input())
+    return [state, player]
+
+
+# reading input
+[state, player] = read_input()
 
 # output
 
 root = Node(None, state, player, None)
 
-# minimax(root, 2, True)
-alphabeta(root, 2, -float('inf'), float('inf'), True)
+# minimax(root, 2, True, heuristic_random)
+alphabeta(root, 7, -float('inf'), float('inf'), True, heuristic_random)
 
 print next_move(root)
 
